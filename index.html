@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hachem Lamrini - Portfolio avec Expérience de Jeu</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --text-light: rgba(255, 255, 255, 0.9);
+            --text-dark: #333;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 10px 20px rgba(0, 0, 0, 0.15);
+            --shadow-lg: 0 15px 30px rgba(0, 0, 0, 0.2);
+            --blur-sm: blur(8px);
+            --blur-md: blur(15px);
+            --blur-lg: blur(25px);
+            --violet-light: #8a6bff;
+            --violet-medium: #6a4bce;
+            --violet-dark: #4d2fa8;
+            --violet-accent: #b19dff;
+            --pink-accent: #ff7eb9;
+        }
+
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: none; /* Désactiver le curseur par défaut */
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: var(--text-light);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-attachment: fixed;
+            background: linear-gradient(135deg, #2a0845 0%, #1a1a2e 100%);
+        }
+
+        /* Canvas pour le réseau neuronal - Amélioré */
+        #neuralCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* En arrière-plan */
+        }
+
+        /* Système de curseur amélioré */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(138, 107, 255, 0.7);
+            box-shadow: 0 0 15px rgba(138, 107, 255, 0.8);
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            transition: 
+                width 0.2s ease, 
+                height 0.2s ease,
+                background 0.3s ease,
+                border 0.3s ease;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-follower {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(138, 107, 255, 0.4);
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9998;
+            transition: 
+                all 0.6s cubic-bezier(0.15, 0.95, 0.75, 0.95),
+                width 0.3s ease,
+                height 0.3s ease,
+                border 0.3s ease;
+            mix-blend-mode: difference;
+        }
+
+        .cursor.active {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 126, 185, 0.8);
+            box-shadow: 0 0 20px rgba(255, 126, 185, 0.9);
+        }
+
+        .cursor.clicked {
+            width: 15px;
+            height: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 1);
+        }
+
+        .cursor-follower.expanded {
+            transform: translate(-50%, -50%) scale(1.5);
+            border-width: 1px;
+            opacity: 0.7;
+        }
+
+        .cursor-follower.clicked {
+            transform: translate(-50%, -50%) scale(0.8);
+            border-color: rgba(255, 126, 185, 0.8);
+        }
+
+        .cursor-text {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9997;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            text-shadow: 0 0 10px rgba(255, 126, 185, 0.8);
+            white-space: nowrap;
+            transform: translate(-50%, -50%) scale(0.8);
+        }
+
+        .cursor-particle {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+            transform: translate(-50%, -50%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Floating particles background */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(3px 3px at 10% 20%, rgba(138, 107, 255, 0.6), transparent),
+                radial-gradient(2.5px 2.5px at 90% 80%, rgba(106, 75, 206, 0.5), transparent),
+                radial-gradient(3px 3px at 30% 60%, rgba(77, 47, 168, 0.45), transparent),
+                radial-gradient(2px 2px at 70% 40%, rgba(177, 157, 255, 0.55), transparent),
+                radial-gradient(2.2px 2.2px at 50% 30%, rgba(255, 126, 185, 0.35), transparent);
+            background-repeat: repeat;
+            background-size: 300px 200px;
+            animation: floatingParticles 20s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes floatingParticles {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-100vh) rotate(360deg); }
+        }
+
+        /* Header & Navigation */
+        header {
+            background: var(--glass-bg);
+            backdrop-filter: var(--blur-md);
+            border-bottom: 1px solid var(--glass-border);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+        }
+
+        header.scrolled {
+            transform: translateY(-5px);
+            backdrop-filter: var(--blur-lg);
+            box-shadow: var(--shadow-md);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem 0;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: white;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: logoPulse 3s ease-in-out infinite;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            animation: logoRipple 3s ease-out infinite;
+        }
+
+        @keyframes logoPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes logoRipple {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2.5rem;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            padding: 0.7rem 1.5rem;
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-links a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.15);
+            transition: left 0.5s ease;
+            z-index: -1;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-links a:hover::before {
+            left: 100%;
+        }
+
+        .nav-links li {
+            animation: slideInFromTop 0.6s ease forwards;
+            animation-delay: calc(var(--delay, 0) * 0.1s);
+            opacity: 0;
+        }
+
+        .nav-links li:nth-child(1) { --delay: 1; }
+        .nav-links li:nth-child(2) { --delay: 2; }
+        .nav-links li:nth-child(3) { --delay: 3; }
+
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile Menu */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 2rem;
+            height: 2rem;
+            background: transparent;
+            border: none;
+            cursor: none;
+            padding: 0;
+            z-index: 10;
+        }
+
+        .menu-toggle span {
+            width: 2rem;
+            height: 0.25rem;
+            background: white;
+            border-radius: 10px;
+            transition: var(--transition);
+            position: relative;
+            transform-origin: center;
+        }
+
+        /* Hero Section */
+        main {
+            margin-top: 90px;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 6rem 0 4rem;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at center, rgba(255,255,255,0.03) 0%, transparent 70%);
+            animation: wave 15s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateX(-50%) translateY(-50%) rotate(0deg); }
+            50% { transform: translateX(-50%) translateY(-50%) rotate(180deg); }
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            animation: fadeInUp 1s ease;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+
+        .hero p {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            animation: fadeInUp 1s ease 0.2s both;
+            font-weight: 300;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--secondary-gradient);
+            color: white;
+            padding: 1.2rem 2.5rem;
+            text-decoration: none;
+            border-radius: 60px;
+            font-weight: 700;
+            transition: var(--transition);
+            box-shadow: var(--shadow-md);
+            animation: fadeInUp 1s ease 0.4s both;
+            font-size: 1.1rem;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.7s ease;
+            z-index: -1;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        /* Section styling */
+        .section {
+            padding: 5rem 0;
+            background: var(--card-bg);
+            margin: 3rem 0;
+            border-radius: 25px;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: var(--blur-sm);
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.6s ease;
+        }
+
+        .section:hover::before {
+            transform: scaleX(1);
+        }
+
+        .section h2 {
+            text-align: center;
+            font-size: 2.8rem;
+            margin-bottom: 3.5rem;
+            color: var(--text-dark);
+            position: relative;
+            display: inline-block;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0 2rem;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 5px;
+            background: var(--primary-gradient);
+            border-radius: 3px;
+            transition: var(--transition);
+        }
+
+        .section:hover h2::after {
+            width: 120px;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+        }
+
+        /* About Section */
+        .about-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .profile-img-container {
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .profile-img {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4.5rem;
+            color: white;
+            margin: 0 auto;
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .profile-img::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2, #667eea);
+            animation: rotate 8s linear infinite;
+            z-index: -1;
+        }
+
+        .profile-img:hover {
+            transform: rotateY(20deg) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .profile-img:hover::after {
+            content: '👋';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 2rem;
+            animation: waveHand 1s ease;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes waveHand {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(15deg); }
+            50% { transform: rotate(-10deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+        .about-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: var(--text-dark);
+        }
+
+        .about-text p {
+            margin-bottom: 1.5rem;
+        }
+
+        /* Projects Section */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            margin-top: 2rem;
+        }
+
+        .project-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 2.2rem;
+            transition: var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            overflow: hidden;
+            cursor: none;
+            backdrop-filter: var(--blur-sm);
+            transform-style: preserve-3d;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: var(--primary-gradient);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+        }
+
+        .project-card:hover {
+            transform: translateY(-15px) rotateX(5deg) rotateY(5deg);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .project-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .project-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%) translateY(-100%) rotate(45deg);
+            transition: transform 0.7s ease;
+        }
+
+        .project-card:hover::after {
+            transform: translateX(100%) translateY(100%) rotate(45deg);
+        }
+
+        .project-card h3 {
+            font-size: 1.7rem;
+            margin-bottom: 1.5rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .project-card p {
+            margin-bottom: 1.8rem;
+            color: #555;
+            min-height: 80px;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tech-tag {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 0.5rem 1.2rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tech-tag::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.2);
+            transition: left 0.4s ease;
+        }
+
+        .tech-tag:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .tech-tag:hover::before {
+            left: 100%;
+        }
+
+        .video-container {
+            margin: 2rem 0;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .video-container:hover {
+            transform: scale(1.02);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .video-container video {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 15px;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .project-link {
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            cursor: none;
+        }
+
+        .code-link {
+            background: #333;
+            color: white;
+        }
+
+        .fullscreen-btn {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .project-link:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Contact Section */
+        .contact {
+            background: var(--primary-gradient);
+            color: white;
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: var(--blur-sm);
+        }
+
+        .contact h2::after {
+            background: white;
+        }
+
+        .contact-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2.5rem;
+            margin-top: 3rem;
+        }
+
+        .contact-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            font-size: 1.2rem;
+            background: var(--glass-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            backdrop-filter: var(--blur-sm);
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+            transform-style: preserve-3d;
+            cursor: none;
+        }
+
+        .contact-item:hover {
+            transform: translateY(-10px) rotateX(5deg) rotateY(5deg);
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: var(--shadow-md);
+        }
+
+        .contact-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: var(--transition);
+            animation: swing 3s ease-in-out infinite;
+            animation-delay: calc(var(--swing-delay, 0) * 0.2s);
+        }
+
+        .contact-item:nth-child(1) .contact-icon { --swing-delay: 0; }
+        .contact-item:nth-child(2) .contact-icon { --swing-delay: 1; }
+        .contact-item:nth-child(3) .contact-icon { --swing-delay: 2; }
+
+        @keyframes swing {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(8deg); }
+            75% { transform: rotate(-8deg); }
+        }
+
+        .contact-text {
+            font-weight: 500;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.92);
+            backdrop-filter: var(--blur-lg);
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            opacity: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            position: relative;
+            background: rgba(30, 30, 40, 0.95);
+            margin: 2% auto;
+            padding: 0;
+            width: 90%;
+            max-width: 900px;
+            border-radius: 25px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: var(--blur-md);
+            transform: translateY(20px);
+        }
+
+        @keyframes modalSlideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2.5rem;
+            border-radius: 25px 25px 0 0;
+            position: relative;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .modal-header p {
+            margin: 1rem 0 0 0;
+            opacity: 0.9;
+            font-size: 1.2rem;
+            max-width: 80%;
+        }
+
+        .close {
+            position: absolute;
+            right: 2rem;
+            top: 2.5rem;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+            cursor: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            line-height: 1;
+        }
+
+        .close:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+
+        .modal-body {
+            padding: 2.5rem;
+        }
+
+        .modal-tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .modal-tech-tag {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .modal-details {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 2.5rem;
+        }
+
+        .modal-video {
+            margin: 2.5rem 0;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-video video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+
+        .modal-btn {
+            padding: 1.2rem 2.5rem;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: var(--transition);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: none;
+        }
+
+        .modal-code-btn {
+            background: #333;
+            color: white;
+        }
+
+        .modal-code-btn:hover {
+            background: #444;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Game Button */
+        .game-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 1.2rem 2.5rem;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 60px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: var(--shadow-md);
+            cursor: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            z-index: 100;
+            transition: var(--transition);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: var(--blur-sm);
+            animation: pulseGlow 2.5s infinite;
+        }
+
+        .game-button span {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .game-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.7s ease;
+            z-index: 1;
+        }
+
+        .game-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-button:hover::before {
+            left: 100%;
+        }
+
+        .button-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                box-shadow: 0 0 0 0 rgba(138, 107, 255, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 15px rgba(138, 107, 255, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(138, 107, 255, 0);
+            }
+        }
+
+        /* Game Experience */
+        #gameExperience {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            z-index: 5000;
+            display: none;
+            opacity: 0;
+            transition: opacity 1.5s cubic-bezier(0.215, 0.610, 0.355, 1);
+        }
+
+        #gameCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .game-ui {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            text-align: center;
+            color: white;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+        }
+
+        .game-title {
+            font-size: 4rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(138, 107, 255, 0.8);
+            background: linear-gradient(45deg, #8a6bff, #ff7eb9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: titleGlow 3s infinite alternate;
+        }
+
+        .game-instructions {
+            font-size: 1.5rem;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .game-btn {
+            padding: 1rem 2.5rem;
+            border-radius: 40px;
+            background: var(--glass-bg);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: var(--blur-md);
+        }
+
+        .game-btn:hover {
+            background: rgba(138, 107, 255, 0.3);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes titleGlow {
+            0% { text-shadow: 0 0 10px rgba(138, 107, 255, 0.5); }
+            100% { text-shadow: 0 0 30px rgba(138, 107, 255, 0.9), 0 0 60px rgba(255, 126, 185, 0.7); }
+        }
+
+        /* Transition Effects */
+        .transition-particle {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--violet-light);
+            box-shadow: 0 0 15px var(--violet-light);
+            pointer-events: none;
+            z-index: 4000;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+        }
+
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a2e;
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 992px) {
+            .hero h1 {
+                font-size: 3.2rem;
+            }
+            
+            .about-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 3rem;
+            }
+            
+            .projects-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                height: 100vh;
+                width: 70%;
+                background: rgba(40, 40, 60, 0.95);
+                backdrop-filter: var(--blur-lg);
+                flex-direction: column;
+                justify-content: center;
+                gap: 3rem;
+                transition: right 0.4s ease;
+                z-index: 900;
+            }
+            
+            .nav-links.active {
+                right: 0;
+            }
+            
+            .menu-toggle {
+                display: flex;
+                z-index: 1000;
+            }
+            
+            .menu-toggle.active span:nth-child(1) {
+                transform: rotate(45deg) translate(5px, 9px);
+            }
+            
+            .menu-toggle.active span:nth-child(2) {
+                opacity: 0;
+            }
+            
+            .menu-toggle.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(5px, -9px);
+            }
+            
+            .hero {
+                padding: 4rem 0 3rem;
+            }
+            
+            .hero h1 {
+                font-size: 2.8rem;
+            }
+            
+            .hero p {
+                font-size: 1.3rem;
+            }
+            
+            .section {
+                padding: 4rem 0;
+                margin: 2rem 0;
+            }
+            
+            .section h2 {
+                font-size: 2.4rem;
+            }
+            
+            .contact-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+            }
+            
+            .modal-header h2 {
+                font-size: 2rem;
+            }
+            
+            .close {
+                right: 1.5rem;
+                top: 1.8rem;
+            }
+            
+            .game-button {
+                padding: 1rem 2rem;
+                font-size: 0.9rem;
+                bottom: 20px;
+                right: 20px;
+            }
+            
+            .game-title {
+                font-size: 2.5rem;
+            }
+            
+            .game-instructions {
+                font-size: 1.1rem;
+                padding: 0 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2.3rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .cta-button {
+                padding: 1rem 2rem;
+            }
+            
+            .section h2 {
+                font-size: 2rem;
+            }
+            
+            .project-card {
+                padding: 1.8rem;
+            }
+            
+            .project-links {
+                flex-direction: column;
+                gap: 0.8rem;
+            }
+            
+            .modal-body {
+                padding: 1.8rem;
+            }
+            
+            .modal-header {
+                padding: 1.8rem;
+            }
+            
+            .game-controls {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #667eea, #764ba2);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, #5a6ed8, #6842a0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Canvas pour le réseau neuronal -->
+    <canvas id="neuralCanvas"></canvas>
+    
+    <!-- Système de curseur amélioré -->
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+    <div class="cursor-text">Click!</div>
+    
+    <header id="header">
+        <nav class="container">
+            <div class="logo">
+                <i class="fas fa-code"></i>
+                Hachem Lamrini
+            </div>
+            <ul class="nav-links">
+                <li><a href="#about"><i class="fas fa-user"></i> À propos</a></li>
+                <li><a href="#projects"><i class="fas fa-project-diagram"></i> Projets</a></li>
+                <li><a href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
+            </ul>
+            <button class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1>Développeur Passionné & Créatif</h1>
+                <p>Étudiant en 1ère année à Epitech | Spécialisé en développement d'applications innovantes</p>
+                <a href="#projects" class="cta-button">
+                    <i class="fas fa-rocket"></i> Découvrir mes projets
+                </a>
+            </div>
+        </section>
+
+        <section id="about" class="section">
+            <div class="container">
+                <h2>À propos de moi</h2>
+                <div class="about-content">
+                    <div class="profile-img-container">
+                        <div class="profile-img">
+                            HL
+                        </div>
+                    </div>
+                    <div class="about-text">
+                        <p>Bonjour ! Je suis Hachem Lamrini, étudiant passionné en première année à Epitech. Mon parcours dans le développement informatique a commencé très tôt, et aujourd'hui, je me spécialise dans la création d'applications innovantes et de solutions technologiques créatives.</p>
+                        
+                        <p>À Epitech, j'acquiers des compétences solides en programmation tout en développant ma capacité à résoudre des problèmes complexes. J'aime relever des défis techniques et créer des projets qui ont un impact positif et qui repoussent les limites de la technologie.</p>
+                        
+                        <p>Je maîtrise plusieurs langages de programmation et technologies, notamment le C, Python, JavaScript, et les frameworks modernes. Mon approche combine rigueur technique et créativité pour produire des solutions élégantes et efficaces.</p>
+                        
+                        <p>Je suis constamment à la recherche de nouvelles opportunités d'apprentissage et de collaboration sur des projets innovants. Si vous cherchez un développeur passionné et déterminé, n'hésitez pas à me contacter !</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="section">
+            <div class="container">
+                <h2>Mes projets récents</h2>
+                <div class="projects-grid">
+                    <div class="project-card" data-project="wolf3d">
+                        <h3><i class="fas fa-gamepad"></i> Wolf3D</h3>
+                        <p>Développement d'un moteur 3D en langage C inspiré de Wolfenstein 3D, avec gestion des collisions, textures dynamiques et animations fluides. Utilisation de l'algorithme de raycasting pour un rendu performant.</p>
+                        
+                        <div class="tech-stack">
+                            <span class="tech-tag">C</span>
+                            <span class="tech-tag">CSFML</span>
+                            <span class="tech-tag">OpenGL</span>
+                            <span class="tech-tag">Algorithmes 3D</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="project-link fullscreen-btn" onclick="openModal('wolf3d'); event.stopPropagation();">
+                                <i class="fas fa-expand"></i> Voir en détail
+                            </a>
+                            <a href="#" class="project-link code-link" onclick="event.stopPropagation();">
+                                <i class="fab fa-github"></i> Code source
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="project-card" data-project="myworld">
+                        <h3><i class="fas fa-globe-americas"></i> MyWorld</h3>
+                        <p>Éditeur de terrain 3D en temps réel inspiré de Tycoon Terrain. Créez, modifiez et exportez des cartes avec des effets de relief, textures et éclairage dynamique. Gestion de la génération procédurale de terrains.</p>
+                        
+                        <div class="tech-stack">
+                            <span class="tech-tag">C</span>
+                            <span class="tech-tag">CSFML</span>
+                            <span class="tech-tag">Projection 3D</span>
+                            <span class="tech-tag">Algorithmes de terrain</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="project-link fullscreen-btn" onclick="openModal('myworld'); event.stopPropagation();">
+                                <i class="fas fa-expand"></i> Voir en détail
+                            </a>
+                            <a href="#" class="project-link code-link" onclick="event.stopPropagation();">
+                                <i class="fab fa-github"></i> Code source
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="project-card" data-project="minishell">
+                        <h3><i class="fas fa-terminal"></i> Minishell</h3>
+                        <p>Implémentation complète d'un shell Unix en C, avec gestion des pipes, redirections, signaux et commandes intégrées. Support complet des variables d'environnement et de l'historique des commandes.</p>
+                        
+                        <div class="tech-stack">
+                            <span class="tech-tag">C</span>
+                            <span class="tech-tag">Systèmes Unix</span>
+                            <span class="tech-tag">Gestion de processus</span>
+                            <span class="tech-tag">Parsing</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="project-link fullscreen-btn" onclick="openModal('minishell'); event.stopPropagation();">
+                                <i class="fas fa-expand"></i> Voir en détail
+                            </a>
+                            <a href="#" class="project-link code-link" onclick="event.stopPropagation();">
+                                <i class="fab fa-github"></i> Code source
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="section contact">
+            <div class="container">
+                <h2>Contactez-moi</h2>
+                <p>Disponible pour des collaborations, stages ou opportunités professionnelles</p>
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-text">hachem.lamrini@epitech.eu</div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fab fa-linkedin"></i>
+                        </div>
+                        <div class="contact-text">LinkedIn / HachemLamrini</div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fab fa-github"></i>
+                        </div>
+                        <div class="contact-text">GitHub / HachemLamrini</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Bouton de jeu innovant -->
+    <div id="gameButton" class="game-button">
+        <span><i class="fas fa-gamepad"></i> Découvrir le jeu</span>
+        <div class="button-particles"></div>
+    </div>
+
+    <!-- Expérience de jeu -->
+    <div id="gameExperience">
+        <canvas id="gameCanvas"></canvas>
+        <div class="game-ui">
+            <h1 class="game-title">Dimension Shift</h1>
+            <p class="game-instructions">Naviguez dans les dimensions fractales. Utilisez les touches fléchées pour vous déplacer et la souris pour changer d'angle. Trouvez le portail dimensionnel caché pour revenir au portfolio.</p>
+            <div class="game-controls">
+                <button class="game-btn" onclick="hideGameExperience()"><i class="fas fa-arrow-left"></i> Retour</button>
+                <button class="game-btn" onclick="startGame()"><i class="fas fa-play"></i> Commencer</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="projectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="fas fa-project-diagram"></i> Titre du projet</h2>
+                <p id="modalSubtitle">Description courte</p>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="modalDescription" class="modal-details">
+                    Description détaillée du projet...
+                </div>
+                <div id="modalTechStack" class="modal-tech-stack">
+                    <!-- Tech tags will be inserted here -->
+                </div>
+                <div id="modalVideo" class="modal-video" style="display: none;">
+                    <video controls>
+                        <source src="" type="video/mp4">
+                    </video>
+                </div>
+                <div class="modal-actions">
+                    <a href="#" id="modalCodeLink" class="modal-btn modal-code-btn">
+                        <i class="fab fa-github"></i> Voir le code source
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const config = {
+            nodeCount: 40,
+            maxConnections: 4,
+            pulseSpeed: 2.5,
+            colors: ['#8a6bff', '#6a4bce', '#4d2fa8', '#b19dff', '#ff7eb9'],
+            activeColor: 0,
+            nodeRadius: 5,
+            lineWidth: 2.5,
+            pulseWidth: 6,
+            repulsionDistance: 120,
+            attractionForce: 0.015,
+            connectionDistance: 180
+        };
+        
+        const canvas = document.getElementById('neuralCanvas');
+        const ctx = canvas.getContext('2d');
+        const cursor = document.querySelector('.cursor');
+        const cursorFollower = document.querySelector('.cursor-follower');
+        const cursorText = document.querySelector('.cursor-text');
+        
+        let nodes = [];
+        let pulses = [];
+        let mouseX = 0;
+        let mouseY = 0;
+        let animationId;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        let velocity = 0;
+        let hoverState = false;
+        let clickParticles = [];
+        let hoverTextTimeout;
+        
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            createNodes();
+            animate();
+        }
+        
+        function createNodes() {
+            nodes = [];
+            
+            for (let i = 0; i < config.nodeCount; i++) {
+                nodes.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    radius: config.nodeRadius,
+                    connections: [],
+                    color: config.colors[Math.floor(Math.random() * config.colors.length)]
+                });
+            }
+            createConnections();
+        }
+        
+        function createConnections() {
+            nodes.forEach(node => {
+                node.connections = [];
+                for (let i = 0; i < nodes.length; i++) {
+                    if (node !== nodes[i] && node.connections.length < config.maxConnections) {
+                        const distance = getDistance(node, nodes[i]);
+                        if (distance < config.connectionDistance && Math.random() > 0.6) {
+                            node.connections.push({
+                                target: nodes[i],
+                                strength: 1 - (distance / config.connectionDistance)
+                            });
+                        }
+                    }
+                }
+            });
+        }
+        
+        function getDistance(node1, node2) {
+            const dx = node1.x - node2.x;
+            const dy = node1.y - node2.y;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        
+        function updateNodes() {
+            nodes.forEach(node => {
+                const dx = node.x - mouseX;
+                const dy = node.y - mouseY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < config.repulsionDistance) {
+                    const force = (config.repulsionDistance - distance) / config.repulsionDistance;
+                    node.vx += (dx / distance) * force * 0.4;
+                    node.vy += (dy / distance) * force * 0.4;
+                }
+            });
+            
+            nodes.forEach(node => {
+                node.connections.forEach(conn => {
+                    const dx = conn.target.x - node.x;
+                    const dy = conn.target.y - node.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 0) {
+                        const force = config.attractionForce * conn.strength;
+                        node.vx += (dx / distance) * force;
+                        node.vy += (dy / distance) * force;
+                    }
+                });
+                node.x += node.vx;
+                node.y += node.vy;
+                if (node.x < node.radius || node.x > canvas.width - node.radius) {
+                    node.vx *= -0.8;
+                    node.x = node.x < node.radius ? node.radius : canvas.width - node.radius;
+                }
+                if (node.y < node.radius || node.y > canvas.height - node.radius) {
+                    node.vy *= -0.8;
+                    node.y = node.y < node.radius ? node.radius : canvas.height - node.radius;
+                }
+                node.vx *= 0.98;
+                node.vy *= 0.98;
+            });
+            if (Math.random() < 0.07) {
+                createPulse();
+            }
+            updatePulses();
+        }
+        
+        function createPulse() {
+            if (nodes.length > 0) {
+                const startNode = nodes[Math.floor(Math.random() * nodes.length)];
+                
+                if (startNode.connections.length > 0) {
+                    const connection = startNode.connections[Math.floor(Math.random() * startNode.connections.length)];
+                    pulses.push({
+                        start: startNode,
+                        end: connection.target,
+                        progress: 0,
+                        width: config.pulseWidth,
+                        color: config.colors[config.activeColor],
+                        speed: config.pulseSpeed * (0.5 + Math.random() * 0.7)
+                    });
+                    config.activeColor = (config.activeColor + 1) % config.colors.length;
+                }
+            }
+        }
+
+        function updatePulses() {
+            for (let i = pulses.length - 1; i >= 0; i--) {
+                pulses[i].progress += 0.01 * pulses[i].speed;
+                
+                if (pulses[i].progress >= 1) {
+                    pulses.splice(i, 1);
+                }
+            }
+        }
+        
+        function drawNetwork() {
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.lineWidth = config.lineWidth;
+            
+            nodes.forEach(node => {
+                node.connections.forEach(conn => {
+                    const alpha = 0.5 + 0.4 * conn.strength;
+                    ctx.strokeStyle = `rgba(138, 107, 255, ${alpha})`;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(node.x, node.y);
+                    ctx.lineTo(conn.target.x, conn.target.y);
+                    ctx.stroke();
+                });
+            });
+            
+            pulses.forEach(pulse => {
+                const start = pulse.start;
+                const end = pulse.end;
+                const x = start.x + (end.x - start.x) * pulse.progress;
+                const y = start.y + (end.y - start.y) * pulse.progress;
+                
+                const gradient = ctx.createRadialGradient(x, y, 0, x, y, pulse.width * 2);
+                gradient.addColorStop(0, pulse.color);
+                gradient.addColorStop(0.7, pulse.color);
+                gradient.addColorStop(1, 'transparent');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(x, y, pulse.width * 2, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            nodes.forEach(node => {
+
+                const gradient = ctx.createRadialGradient(
+                    node.x, node.y, 0,
+                    node.x, node.y, node.radius * 2.5
+                );
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+                gradient.addColorStop(0.8, node.color);
+                gradient.addColorStop(1, 'rgba(138, 107, 255, 0.5)');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.radius * 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.shadowColor = node.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.radius * 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+        }
+        
+        function animate() {
+            updateNodes();
+            drawNetwork();
+            updateCursorEffects();
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        function updateCursorEffects() {
+            const deltaX = mouseX - lastMouseX;
+            const deltaY = mouseY - lastMouseY;
+            velocity = Math.sqrt(deltaX * deltaY);
+            
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+            
+            updateClickParticles();
+        }
+        
+        function updateClickParticles() {
+            for (let i = clickParticles.length - 1; i >= 0; i--) {
+                const particle = clickParticles[i];
+                
+                particle.x += particle.vx;
+                particle.y += particle.vy;
+                
+                particle.vy += 0.1;
+                
+                particle.opacity -= 0.02;
+                
+                particle.element.style.left = `${particle.x}px`;
+                particle.element.style.top = `${particle.y}px`;
+                particle.element.style.opacity = particle.opacity;
+                particle.element.style.transform = `translate(-50%, -50%) scale(${particle.scale})`;
+                
+                if (particle.opacity <= 0) {
+                    particle.element.remove();
+                    clickParticles.splice(i, 1);
+                }
+            }
+        }
+        
+        function createClickParticles(x, y) {
+            const count = 15;
+            const colors = ['#ff7eb9', '#8a6bff', '#6a4bce', '#b19dff', '#ffffff'];
+            
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'cursor-particle';
+                
+                const size = Math.random() * 8 + 4;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                particle.style.cssText = `
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: ${color};
+                    box-shadow: 0 0 10px ${color};
+                    left: ${x}px;
+                    top: ${y}px;
+                    opacity: 1;
+                `;
+                
+                document.body.appendChild(particle);
+                
+
+                clickParticles.push({
+                    element: particle,
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8 - 2,
+                    opacity: 1,
+                    scale: Math.random() * 0.5 + 0.5
+                });
+            }
+        }
+        
+        function showCursorText(text, duration = 1000) {
+            cursorText.textContent = text;
+            cursorText.style.opacity = 1;
+            cursorText.style.transform = 'translate(-50%, -50%) scale(1)';
+            
+            if (hoverTextTimeout) clearTimeout(hoverTextTimeout);
+            
+            hoverTextTimeout = setTimeout(() => {
+                cursorText.style.opacity = 0;
+                cursorText.style.transform = 'translate(-50%, -50%) scale(0.8)';
+            }, duration);
+        }
+        
+        function initCursor() {
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                
+                cursor.style.left = `${e.clientX}px`;
+                cursor.style.top = `${e.clientY}px`;
+                cursorText.style.left = `${e.clientX}px`;
+                cursorText.style.top = `${e.clientY - 40}px`;
+                
+
+                setTimeout(() => {
+                    cursorFollower.style.left = `${e.clientX}px`;
+                    cursorFollower.style.top = `${e.clientY}px`;
+                }, 50);
+            });
+            
+            const interactiveElements = document.querySelectorAll('button, a, .project-card, .cta-button, .contact-item, .nav-links a, .project-link, .game-button');
+            
+            interactiveElements.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    cursor.classList.add('active');
+                    cursorFollower.classList.add('expanded');
+                    
+                    if (el.classList.contains('cta-button')) {
+                        showCursorText('Go!');
+                    } else if (el.classList.contains('project-link')) {
+                        showCursorText('Open');
+                    } else if (el.classList.contains('game-button')) {
+                        showCursorText('Play!');
+                    }
+                });
+                
+                el.addEventListener('mouseleave', () => {
+                    cursor.classList.remove('active');
+                    cursorFollower.classList.remove('expanded');
+                });
+            });
+            
+            document.addEventListener('mousedown', (e) => {
+                cursor.classList.add('clicked');
+                cursorFollower.classList.add('clicked');
+                createClickParticles(e.clientX, e.clientY);
+                showCursorText('Click!', 300);
+            });
+            
+            document.addEventListener('mouseup', () => {
+                cursor.classList.remove('clicked');
+                cursorFollower.classList.remove('clicked');
+            });
+            
+            const projectCards = document.querySelectorAll('.project-card');
+            projectCards.forEach(card => {
+                card.addEventListener('mouseenter', () => {
+                    showCursorText('View Project');
+                });
+            });
+            
+
+            const logo = document.querySelector('.logo');
+            logo.addEventListener('mouseenter', () => {
+                showCursorText('Home');
+            });
+        }
+        
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.querySelector('.nav-links');
+        
+        menuToggle.addEventListener('click', () => {
+            menuToggle.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+        
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', () => {
+                menuToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
+        });
+        
+        const header = document.getElementById('header');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+        
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                if (targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        const modal = document.getElementById('projectModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSubtitle = document.getElementById('modalSubtitle');
+        const modalDescription = document.getElementById('modalDescription');
+        const modalTechStack = document.getElementById('modalTechStack');
+        const modalVideo = document.getElementById('modalVideo');
+        const modalCodeLink = document.getElementById('modalCodeLink');
+        
+        const projects = {
+            wolf3d: {
+                title: "Wolf3D",
+                subtitle: "Moteur 3D inspiré de Wolfenstein",
+                description: "Ce projet est une implémentation complète d'un moteur 3D utilisant la technique du raycasting, similaire à celle utilisée dans le jeu Wolfenstein 3D. Développé en C avec la bibliothèque CSFML, ce moteur permet de naviguer dans un environnement 3D en temps réel avec des textures dynamiques, une gestion des collisions précise et un système d'éclairage.<br><br>Les fonctionnalités incluent :<ul><li>Génération de cartes à partir de fichiers de configuration</li><li>Textures dynamiques pour les murs, sols et plafonds</li><li>Système de collisions avec les murs et objets</li><li>Éclairage dynamique et ombres portées</li><li>Interface utilisateur intuitive avec minimap</li><li>Optimisation des performances pour un rendu fluide</li></ul>",
+                techStack: ["C", "CSFML", "OpenGL", "Algorithmes 3D", "Mathématiques"],
+                videoSrc: "assets/Wolf3D.mp4"
+            },
+            myworld: {
+                title: "MyWorld",
+                subtitle: "Éditeur de terrain 3D procédural",
+                description: "MyWorld est un éditeur de terrain 3D en temps réel qui permet de créer, modifier et exporter des environnements complexes. Inspiré des outils de création de jeux comme Tycoon Terrain, ce projet offre une interface intuitive pour sculpter le terrain, appliquer des textures et configurer des effets environnementaux.<br><br>Principales caractéristiques :<ul><li>Génération procédurale de terrains avec bruit de Perlin</li><li>Outils de sculpture : élévation, abaissement, lissage</li><li>Système de textures multicouches avec blending</li><li>Éclairage dynamique et gestion des ombres</li><li>Export des cartes dans différents formats</li><li>Gestion de l'eau avec réflexion et réfraction</li></ul>",
+                techStack: ["C", "CSFML", "Projection 3D", "Algorithmes de terrain", "OpenGL"],
+                videoSrc: "assets/MyWorld.mp4"
+            },
+            minishell: {
+                title: "Minishell",
+                subtitle: "Shell Unix complet en C",
+                description: "Minishell est une implémentation complète d'un shell Unix en langage C, offrant toutes les fonctionnalités essentielles d'un terminal moderne. Ce projet démontre une compréhension approfondie des systèmes d'exploitation, de la gestion des processus et des entrées/sorties.<br><br>Fonctionnalités implémentées :<ul><li>Parsing avancé des commandes avec gestion des quotes</li><li>Redirections d'entrée/sortie (>, <, >>, <<)</li><li>Pipes multiples avec gestion des processus</li><li>Commandes intégrées (cd, echo, exit, env, etc.)</li><li>Gestion des signaux (Ctrl-C, Ctrl-D, Ctrl-\\)</li><li>Variables d'environnement et historique des commandes</li><li>Autocomplétion avec la touche Tab</li></ul>",
+                techStack: ["C", "Systèmes Unix", "Gestion de processus", "Parsing", "Signaux"],
+                videoSrc: "assets/Minishell.mp4"
+            }
+        };
+        
+        function openModal(projectId) {
+            const project = projects[projectId];
+            
+            if (!project) return;
+            
+            modalTitle.innerHTML = `<i class="fas fa-project-diagram"></i> ${project.title}`;
+            modalSubtitle.textContent = project.subtitle;
+            modalDescription.innerHTML = project.description;
+            
+            modalTechStack.innerHTML = '';
+            project.techStack.forEach(tech => {
+                const tag = document.createElement('span');
+                tag.className = 'modal-tech-tag';
+                tag.textContent = tech;
+                modalTechStack.appendChild(tag);
+            });
+            
+            if (project.videoSrc) {
+                modalVideo.style.display = 'block';
+                modalVideo.querySelector('source').src = project.videoSrc;
+                modalVideo.querySelector('video').load();
+            } else {
+                modalVideo.style.display = 'none';
+            }
+            
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function closeModal() {
+            modal.classList.remove('show');
+            document.body.style.overflow = 'auto';
+            
+            const video = modalVideo.querySelector('video');
+            if (video) video.pause();
+        }
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+                closeModal();
+            }
+        });
+        
+        const animateOnScroll = () => {
+            const elements = document.querySelectorAll('.section, .project-card, .contact-item');
+            
+            elements.forEach(el => {
+                const elementTop = el.getBoundingClientRect().top;
+                const elementVisible = 150;
+                
+                if (elementTop < window.innerHeight - elementVisible) {
+                    el.style.opacity = "1";
+                    el.style.transform = "translateY(0)";
+                }
+            });
+        };
+        
+        document.querySelectorAll('.section, .project-card, .contact-item').forEach(el => {
+            el.style.opacity = "0";
+            el.style.transform = "translateY(30px)";
+            el.style.transition = "opacity 0.6s ease, transform 0.6s ease";
+        });
+        
+        const gameButton = document.getElementById('gameButton');
+        const gameExperience = document.getElementById('gameExperience');
+        const gameCanvas = document.getElementById('gameCanvas');
+        const gameUI = document.querySelector('.game-ui');
+        
+        let gameScene, gameCamera, gameRenderer, gameObjects = [];
+        
+        gameButton.addEventListener('click', showGameExperience);
+        
+        function showGameExperience() {
+
+            createTransitionEffect();
+            
+            document.querySelectorAll('header, main, #gameButton').forEach(el => {
+                el.style.opacity = '0';
+                el.style.pointerEvents = 'none';
+            });
+            
+            setTimeout(() => {
+                gameExperience.style.display = 'block';
+                setTimeout(() => {
+                    gameExperience.style.opacity = '1';
+                    
+                    setTimeout(() => {
+                        gameUI.style.opacity = '1';
+                    }, 500);
+                }, 50);
+            }, 1000);
+        }
+        
+        function hideGameExperience() {
+            gameExperience.style.opacity = '0';
+            setTimeout(() => {
+                gameExperience.style.display = 'none';
+                
+                document.querySelectorAll('header, main, #gameButton').forEach(el => {
+                    el.style.opacity = '1';
+                    el.style.pointerEvents = 'all';
+                });
+            }, 1000);
+        }
+        
+        function createTransitionEffect() {
+            for (let i = 0; i < 150; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'transition-particle';
+                
+                const size = Math.random() * 30 + 10;
+                const color = `hsl(${Math.random() * 360}, 70%, 60%)`;
+                
+                particle.style.cssText = `
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: ${color};
+                    box-shadow: 0 0 20px ${color};
+                    left: ${Math.random() * 100}vw;
+                    top: ${Math.random() * 100}vh;
+                    opacity: 0;
+                `;
+                
+                document.body.appendChild(particle);
+                
+                const duration = 1 + Math.random() * 2;
+                const delay = Math.random() * 0.5;
+                const targetX = Math.random() * 100;
+                const targetY = Math.random() * 100;
+                
+                particle.animate([
+                    { 
+                        opacity: 0,
+                        transform: 'translate(-50%, -50%) scale(0)'
+                    },
+                    { 
+                        opacity: 1,
+                        transform: 'translate(-50%, -50%) scale(1)',
+                        offset: 0.1
+                    },
+                    { 
+                        opacity: 1,
+                        transform: `translate(${targetX - 50}vw, ${targetY - 50}vh) scale(0.2)`
+                    }
+                ], {
+                    duration: duration * 1000,
+                    delay: delay * 1000,
+                    easing: 'cubic-bezier(0.215, 0.610, 0.355, 1)',
+                    fill: 'forwards'
+                });
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, (duration + delay) * 1000);
+            }
+        }
+        
+        function startGame() {
+            gameUI.style.opacity = '0';
+            
+            initGame();
+        }
+        
+        function initGame() {
+            gameScene = new THREE.Scene();
+            
+            gameCamera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            gameCamera.position.z = 5;
+            
+            gameRenderer = new THREE.WebGLRenderer({ 
+                canvas: gameCanvas,
+                antialias: true,
+                alpha: true
+            });
+            gameRenderer.setSize(window.innerWidth, window.innerHeight);
+            gameRenderer.setPixelRatio(window.devicePixelRatio);
+            
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            gameScene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            gameScene.add(directionalLight);
+            
+            createFractalBackground();
+            
+            animateGame();
+        }
+        
+        function createFractalBackground() {
+
+            const geometry = new THREE.IcosahedronGeometry(1, 3);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: 0x8a6bff,
+                wireframe: true,
+                emissive: 0x4d2fa8,
+                emissiveIntensity: 0.5
+            });
+            
+            for (let i = 0; i < 20; i++) {
+                const mesh = new THREE.Mesh(geometry, material);
+                
+                mesh.position.x = (Math.random() - 0.5) * 20;
+                mesh.position.y = (Math.random() - 0.5) * 20;
+                mesh.position.z = (Math.random() - 0.5) * 20;
+                
+                mesh.rotation.x = Math.random() * Math.PI;
+                mesh.rotation.y = Math.random() * Math.PI;
+                
+                const scale = 0.5 + Math.random() * 1.5;
+                mesh.scale.set(scale, scale, scale);
+                
+                gameScene.add(mesh);
+                gameObjects.push(mesh);
+            }
+        }
+        
+        function animateGame() {
+            requestAnimationFrame(animateGame);
+            
+            gameObjects.forEach((obj, index) => {
+                obj.rotation.x += 0.005 * (index % 3 + 1);
+                obj.rotation.y += 0.003 * (index % 4 + 1);
+                
+                const scale = 0.8 + Math.sin(Date.now() * 0.001 + index) * 0.2;
+                obj.scale.set(scale, scale, scale);
+            });
+            
+            gameCamera.position.x = Math.sin(Date.now() * 0.001) * 3;
+            gameCamera.position.y = Math.cos(Date.now() * 0.0007) * 2;
+            gameCamera.position.z = 5 + Math.sin(Date.now() * 0.0005) * 2;
+            gameCamera.lookAt(0, 0, 0);
+            gameRenderer.render(gameScene, gameCamera);
+        }
+        
+        function handleResize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            if (gameRenderer) {
+                gameCamera.aspect = window.innerWidth / window.innerHeight;
+                gameCamera.updateProjectionMatrix();
+                gameRenderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+        
+        window.addEventListener('load', () => {
+            initCanvas();
+            initCursor();
+            animateOnScroll();
+            window.addEventListener('resize', handleResize);
+        });
+        window.addEventListener('scroll', animateOnScroll);
+    </script>
+</body>
+</html>
