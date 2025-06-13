@@ -24,7 +24,7 @@
             <p class="subtitle">Simulations physiques ultra-réalistes avec raytracing optimisé</p>
         </div>
 
-        <div class="games-grid">
+        <div class="games-grid" style="justify-content: center;">
             <!-- Ocean Raytracing Simulation -->
             <div class="game-card" onclick="startRaytracing('ocean')">
                 <div class="loading-overlay" id="oceanLoading">
@@ -35,19 +35,6 @@
                 <div class="game-info">
                     <h3 class="game-title">Ocean Raytracing</h3>
                     <p class="game-desc">Simulation océanique avec raytracing volumétrique et caustiques dynamiques.</p>
-                </div>
-            </div>
-
-            <!-- Crystal Fractal Raytracer -->
-            <div class="game-card" onclick="startRaytracing('crystal')">
-                <div class="loading-overlay" id="crystalLoading">
-                    <div class="loading-spinner"></div>
-                </div>
-                <canvas id="crystalCanvas" class="game-canvas" width="500" height="450"></canvas>
-                <div class="performance-info" id="crystalPerf">FPS: 0 | Fractales: 0</div>
-                <div class="game-info">
-                    <h3 class="game-title">Crystal Fractal Raytracer</h3>
-                    <p class="game-desc">Rendu de cristaux fractals avec raytracing récursif et dispersion chromatique.</p>
                 </div>
             </div>
         </div>
@@ -65,7 +52,6 @@
     <script src="js/particle-system.js"></script>
     <script src="js/raytracing-engine.js"></script>
     <script src="js/ocean-simulation.js"></script>
-    <script src="js/crystal-simulation.js"></script>
     
     <script>
         // Global application state
@@ -81,7 +67,7 @@
         let particleSystem;
         
         // Raytracing engines
-        let oceanEngine, crystalEngine;
+        let oceanEngine;
 
         // Initialize application
         function init() {
@@ -100,7 +86,6 @@
                 
                 // Initialize raytracing engines
                 oceanEngine = new OceanSimulation();
-                crystalEngine = new CrystalSimulation();
                 
                 // Initialize cursor effects
                 initCursorEffects();
@@ -203,9 +188,6 @@
                     if (type === 'ocean') {
                         oceanEngine.init('oceanCanvas', 'oceanPerf');
                         oceanEngine.start();
-                    } else if (type === 'crystal') {
-                        crystalEngine.init('crystalCanvas', 'crystalPerf');
-                        crystalEngine.start();
                     }
                     
                     loadingElement.style.display = 'none';
@@ -223,8 +205,6 @@
             try {
                 if (type === 'ocean' && oceanEngine) {
                     oceanEngine.stop();
-                } else if (type === 'crystal' && crystalEngine) {
-                    crystalEngine.stop();
                 }
             } catch (error) {
                 console.error(`Error stopping ${type} simulation:`, error);
@@ -253,10 +233,6 @@
             
             if (oceanEngine && activeGame === 'ocean') {
                 oceanEngine.resize();
-            }
-            
-            if (crystalEngine && activeGame === 'crystal') {
-                crystalEngine.resize();
             }
         });
 
