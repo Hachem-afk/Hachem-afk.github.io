@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
-
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --secondary-gradient: linear-gradient(45deg, #ff6b6b, #ee5a24);
@@ -162,9 +161,34 @@
             text-transform: uppercase;
         }
 
+        .preloader-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .preloader-particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--violet-light);
+            box-shadow: 0 0 15px var(--violet-light);
+            animation: float 8s infinite ease-in-out;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+            50% { transform: translate(calc(100vw * var(--tx)), calc(100vh * var(--ty))) scale(1.5); opacity: 1; }
+            100% { transform: translate(calc(200vw * var(--tx)), calc(200vh * var(--ty))) scale(1); opacity: 0; }
         }
 
         /* Canvas pour le réseau neuronal */
@@ -1327,6 +1351,32 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
         }
 
+        .game-return-btn {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            background: var(--game-btn-bg);
+            border: 2px solid var(--game-btn-border);
+            color: var(--text-light);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: var(--blur-md);
+            z-index: 10;
+        }
+
+        .game-return-btn:hover {
+            background: var(--game-btn-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
         @keyframes titleGlow {
             0% { text-shadow: 0 0 10px rgba(138, 107, 255, 0.5); }
             100% { text-shadow: 0 0 30px rgba(138, 107, 255, 0.9), 0 0 60px rgba(255, 126, 185, 0.7); }
@@ -1551,6 +1601,13 @@
                 top: 25px;
                 right: 25px;
             }
+            
+            .game-return-btn {
+                top: 20px;
+                left: 20px;
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1602,6 +1659,13 @@
             body.light-mode .theme-toggle::before {
                 transform: translateX(20px);
             }
+            
+            .game-return-btn {
+                top: 15px;
+                left: 15px;
+                padding: 0.5rem 0.8rem;
+                font-size: 0.8rem;
+            }
         }
 
         /* Scrollbar styling */
@@ -1640,6 +1704,7 @@
             <div class="loader-inner"></div>
         </div>
         <div class="loader-text">Chargement...</div>
+        <div class="preloader-particles"></div>
     </div>
 
     <!-- Canvas pour le réseau neuronal -->
@@ -1829,6 +1894,9 @@
                 <button class="game-btn" onclick="startGame()"><i class="fas fa-play"></i> Commencer</button>
             </div>
         </div>
+        <button class="game-return-btn" onclick="hideGameExperience()">
+            <i class="fas fa-arrow-left"></i> Retour
+        </button>
     </div>
 
     <!-- Modal -->
@@ -1862,8 +1930,39 @@
 
     <script>
 
+        function createPreloaderParticles() {
+            const particlesContainer = document.querySelector('.preloader-particles');
+            const colors = ['#8a6bff', '#6a4bce', '#4d2fa8', '#b19dff', '#ff7eb9'];
+            
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'preloader-particle';
+                
+                const size = Math.random() * 20 + 5;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const tx = Math.random() * 2 - 1;
+                const ty = Math.random() * 2 - 1;
+                
+                particle.style.cssText = `
+                    width: ${size}px;
+                    height: ${size}px;
+                    background: ${color};
+                    box-shadow: 0 0 20px ${color};
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * 100}%;
+                    opacity: 0.8;
+                    --tx: ${tx};
+                    --ty: ${ty};
+                    animation: float ${Math.random() * 4 + 4}s infinite ease-in-out ${Math.random() * 2}s;
+                `;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
         window.addEventListener('load', function() {
             const preloader = document.getElementById('preloader');
+            createPreloaderParticles();
             
             setTimeout(() => {
                 preloader.style.opacity = '0';
