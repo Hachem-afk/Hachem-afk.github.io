@@ -6,6 +6,47 @@
     <title>Raytracing Games - Portfolio Hachem Lamrini</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .play-button {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            background: rgba(0, 150, 255, 0.9);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 150, 255, 0.3);
+            z-index: 10;
+        }
+        
+        .play-button:hover {
+            transform: scale(1.1);
+            background: rgba(0, 150, 255, 1);
+            box-shadow: 0 6px 30px rgba(0, 150, 255, 0.5);
+        }
+        
+        .play-button.playing {
+            background: rgba(255, 100, 100, 0.9);
+        }
+        
+        .play-button.playing:hover {
+            background: rgba(255, 100, 100, 1);
+            box-shadow: 0 6px 30px rgba(255, 100, 100, 0.5);
+        }
+        
+        .game-card {
+            position: relative;
+        }
+    </style>
 </head>
 <body>
     <div class="interactive-bg"></div>
@@ -26,11 +67,14 @@
 
         <div class="games-grid" style="justify-content: center;">
             <!-- Ocean Raytracing Simulation -->
-            <div class="game-card" onclick="startRaytracing('ocean')">
+            <div class="game-card">
                 <div class="loading-overlay" id="oceanLoading">
                     <div class="loading-spinner"></div>
                 </div>
                 <canvas id="oceanCanvas" class="game-canvas" width="500" height="450"></canvas>
+                <button class="play-button" id="oceanPlayButton" onclick="toggleRaytracing('ocean')">
+                    <i class="fas fa-play"></i>
+                </button>
                 <div class="performance-info" id="oceanPerf">FPS: 0 | Rayons: 0</div>
                 <div class="game-info">
                     <h3 class="game-title">Ocean Raytracing</h3>
@@ -59,6 +103,7 @@
         let bgAnimationId;
         let mouseX = 0, mouseY = 0;
         let cursorTrails = [];
+        let isGameRunning = false;
         
         // Performance monitor instance
         let performanceMonitor;
@@ -169,17 +214,36 @@
             animate();
         }
 
+        // Toggle raytracing simulation
+        function toggleRaytracing(type) {
+            const playButton = document.getElementById(type + 'PlayButton');
+            const icon = playButton.querySelector('i');
+            
+            if (isGameRunning && activeGame === type) {
+                // Stop the game
+                stopRaytracing(type);
+                icon.className = 'fas fa-play';
+                playButton.classList.remove('playing');
+                isGameRunning = false;
+                activeGame = null;
+            } else {
+                // Start the game
+                if (activeGame && activeGame !== type) {
+                    stopRaytracing(activeGame);
+                    document.getElementById(activeGame + 'PlayButton').querySelector('i').className = 'fas fa-play';
+                    document.getElementById(activeGame + 'PlayButton').classList.remove('playing');
+                }
+                
+                startRaytracing(type);
+                icon.className = 'fas fa-pause';
+                playButton.classList.add('playing');
+                isGameRunning = true;
+                activeGame = type;
+            }
+        }
+
         // Start raytracing simulation
         function startRaytracing(type) {
-            if (activeGame === type) return;
-            
-            // Stop previous game
-            if (activeGame) {
-                stopRaytracing(activeGame);
-            }
-            
-            activeGame = type;
-            
             try {
                 const loadingElement = document.getElementById(type + 'Loading');
                 loadingElement.style.display = 'flex';
@@ -249,7 +313,7 @@
             } else {
                 // Resume animations when tab becomes visible
                 startBackgroundAnimation();
-                if (activeGame) {
+                if (activeGame && isGameRunning) {
                     startRaytracing(activeGame);
                 }
             }
