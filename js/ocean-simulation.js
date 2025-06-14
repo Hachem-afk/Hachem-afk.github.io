@@ -14,7 +14,7 @@ class OceanSimulation extends RaytracingEngine {
             foamAmount: 0.3,
             transparency: 0.7,
             refractionIndex: 1.33,
-            causticsIntensity: 0.8,
+            causticsIntensity: 0.0,
             volumetricDensity: 0.4
         };
         
