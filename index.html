@@ -87,6 +87,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            cursor: none !important;
+        }
+
+        #preloader, #preloader * {
+            cursor: wait !important;
         }
 
         body {
@@ -98,7 +103,6 @@
             background-attachment: fixed;
             background: var(--bg-gradient);
             transition: background 1.5s ease, color 1.5s ease;
-            cursor: none;
         }
 
         #preloader {
@@ -114,7 +118,6 @@
             justify-content: center;
             align-items: center;
             transition: opacity 0.8s ease, visibility 0.8s ease;
-            cursor: wait;
         }
 
         .loader {
@@ -212,6 +215,7 @@
                 background 0.3s ease,
                 border 0.3s ease;
             mix-blend-mode: difference;
+            opacity: 0;
         }
 
         #cursor.active {
@@ -424,7 +428,6 @@
             height: 2rem;
             background: transparent;
             border: none;
-            cursor: none;
             padding: 0;
             z-index: 10;
         }
@@ -768,7 +771,6 @@
             border: 1px solid var(--section-border);
             position: relative;
             overflow: hidden;
-            cursor: none;
             backdrop-filter: var(--blur-sm);
             transform-style: preserve-3d;
             box-shadow: var(--shadow-sm);
@@ -912,7 +914,6 @@
             align-items: center;
             gap: 8px;
             font-size: 0.95rem;
-            cursor: none;
         }
 
         .code-link {
@@ -962,7 +963,6 @@
             border: 1px solid var(--contact-item-border);
             transition: var(--transition);
             transform-style: preserve-3d;
-            cursor: none;
             opacity: 0;
             transform: translateY(30px);
             transition: opacity 0.8s ease, transform 0.8s ease;
@@ -1092,7 +1092,6 @@
             color: var(--modal-close);
             font-size: 2.5rem;
             font-weight: bold;
-            cursor: none;
             width: 50px;
             height: 50px;
             border-radius: 50%;
@@ -1171,7 +1170,6 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            cursor: none;
         }
 
         .modal-code-btn {
@@ -1207,7 +1205,6 @@
             font-weight: 700;
             text-decoration: none;
             box-shadow: var(--shadow-md);
-            cursor: none;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1354,7 +1351,6 @@
             color: var(--text-light);
             font-size: 1.2rem;
             font-weight: 600;
-            cursor: none;
             transition: var(--transition);
             display: flex;
             align-items: center;
@@ -1379,7 +1375,6 @@
             color: var(--text-light);
             font-size: 1rem;
             font-weight: 600;
-            cursor: none;
             transition: var(--transition);
             display: flex;
             align-items: center;
@@ -1426,7 +1421,6 @@
             color: white;
             font-size: 1.5rem;
             box-shadow: var(--shadow-md);
-            cursor: none;
             opacity: 0;
             transform: translateY(20px);
             transition: var(--transition);
@@ -1452,7 +1446,6 @@
             background: var(--glass-bg);
             border-radius: 15px;
             border: 1px solid var(--glass-border);
-            cursor: none;
             z-index: 1001;
             backdrop-filter: var(--blur-sm);
             display: flex;
@@ -1729,7 +1722,6 @@
         </div>
         <div class="loader-text">Chargement...</div>
         <div class="preloader-particles">
-            <!-- Particules statiques qui restent toujours au même endroit -->
             <div class="preloader-particle" style="width: 15px; height: 15px; background: #8a6bff; box-shadow: 0 0 20px #8a6bff; left: 20%; top: 30%; --tx: 0.5; --ty: -0.8; animation: float 6s infinite ease-in-out 0.5s;"></div>
             <div class="preloader-particle" style="width: 12px; height: 12px; background: #6a4bce; box-shadow: 0 0 15px #6a4bce; left: 75%; top: 60%; --tx: -0.7; --ty: 0.3; animation: float 7s infinite ease-in-out 1s;"></div>
             <div class="preloader-particle" style="width: 18px; height: 18px; background: #4d2fa8; box-shadow: 0 0 25px #4d2fa8; left: 45%; top: 15%; --tx: 0.2; --ty: 0.9; animation: float 8s infinite ease-in-out 0.2s;"></div>
@@ -1765,7 +1757,7 @@
                 <li><a href="#cv"><i class="fas fa-file-alt"></i> CV</a></li>
                 <li><a href="#projects"><i class="fas fa-project-diagram"></i> Projets</a></li>
                 <li><a href="#contact"><i class="fas fa-envelope"></i> Contact</a></li>
-                <li><a href="Raytracing.html"><i class="fas fa-sun-rays"></i> Raytracing</a></li>
+                <li><a href="Raytracing.html"><i class="fas fa-sun"></i> Raytracing</a></li>
             </ul>
             <button class="menu-toggle" id="menuToggle">
                 <span></span>
@@ -1969,7 +1961,6 @@
     </div>
 
     <script>
-
         const staticParticles = [
             { size: 15, color: '#8a6bff', left: 20, top: 30, tx: 0.5, ty: -0.8, duration: 6, delay: 0.5 },
             { size: 12, color: '#6a4bce', left: 75, top: 60, tx: -0.7, ty: 0.3, duration: 7, delay: 1 },
@@ -2011,6 +2002,8 @@
             setTimeout(() => {
                 preloader.style.opacity = '0';
                 preloader.style.visibility = 'hidden';
+                
+                document.getElementById('cursor').style.opacity = '1';
                 
                 document.querySelector('main').style.opacity = '1';
                 document.querySelector('main').style.transform = 'translateY(0)';
