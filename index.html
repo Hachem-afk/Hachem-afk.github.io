@@ -247,19 +247,21 @@
 
         document.addEventListener('DOMContentLoaded', function() {
             const preloader = document.getElementById('preloader');
-            if (sessionStorage.getItem('preloaderShown')) {
-                preloader.style.display = 'none';
-                window.addEventListener('load', initAll);
-            } else {
+            const navEntries = window.performance.getEntriesByType('navigation');
+            const navType = navEntries.length > 0 ? navEntries[0].type : 'navigate';
+            
+            if (navType === 'reload' || navType === 'navigate') {
                 window.addEventListener('load', function() {
                     initStaticParticles();
                     setTimeout(function() {
                         preloader.style.opacity = '0';
                         preloader.style.visibility = 'hidden';
                         initAll();
-                        sessionStorage.setItem('preloaderShown', 'true');
                     }, 2000);
                 });
+            } else {
+                preloader.style.display = 'none';
+                window.addEventListener('load', initAll);
             }
         });
 
