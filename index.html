@@ -233,17 +233,34 @@
             });
         }
 
-        window.addEventListener('load', function() {
+        function initAll() {
+            initCanvas();
+            initCursor();
+            initScrollAnimations();
+            applySavedTheme();
+            themeToggle.addEventListener('click', toggleTheme);
+
+            document.getElementById('cursor').style.opacity = '1';
+            document.querySelector('main').style.opacity = '1';
+            document.querySelector('main').style.transform = 'translateY(0)';
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
             const preloader = document.getElementById('preloader');
-            initStaticParticles();
-            setTimeout(() => {
-                preloader.style.opacity = '0';
-                preloader.style.visibility = 'hidden';
-                document.getElementById('cursor').style.opacity = '1';
-                document.querySelector('main').style.opacity = '1';
-                document.querySelector('main').style.transform = 'translateY(0)';
-                initScrollAnimations();
-            }, 2000);
+            if (sessionStorage.getItem('preloaderShown')) {
+                preloader.style.display = 'none';
+                window.addEventListener('load', initAll);
+            } else {
+                window.addEventListener('load', function() {
+                    initStaticParticles();
+                    setTimeout(function() {
+                        preloader.style.opacity = '0';
+                        preloader.style.visibility = 'hidden';
+                        initAll();
+                        sessionStorage.setItem('preloaderShown', 'true');
+                    }, 2000);
+                });
+            }
         });
 
         const config = {
@@ -790,13 +807,6 @@
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme === 'light') document.body.classList.add('light-mode');
         }
-        window.addEventListener('load', () => {
-            initCanvas();
-            initCursor();
-            initScrollAnimations();
-            applySavedTheme();
-            themeToggle.addEventListener('click', toggleTheme);
-        });
         window.addEventListener('resize', handleResize);
     </script>
 </body>
