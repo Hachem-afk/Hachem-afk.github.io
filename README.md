@@ -1,6 +1,6 @@
 # Hachem Lamrini - Developer Portfolio
 
-## Live Demo
+## Demo
 🌐 [https://hachem-afk.github.io](https://hachem-afk.github.io)  
 ✨ Raytracing Demo: [https://hachem-afk.github.io/Raytracing.html](https://hachem-afk.github.io/Raytracing.html)
 
