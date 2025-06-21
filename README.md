@@ -2,7 +2,7 @@
 
 ## Demo
 🌐 [https://hachem-afk.github.io](https://hachem-afk.github.io)  
-✨ Raytracing Demo: [https://hachem-afk.github.io/Raytracing.html](https://hachem-afk.github.io/Raytracing.html)
+🌐 Raytracing Demo: [https://hachem-afk.github.io/Raytracing.html](https://hachem-afk.github.io/Raytracing.html)
 
 
 ## Table of Contents
