@@ -126,6 +126,20 @@
                             <a href="#" class="project-link code-link" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code source</a>
                         </div>
                     </div>
+                    <div class="project-card" data-project="facialsentinel">
+                        <h3><i class="fas fa-smile"></i> FacialSentinel</h3>
+                        <p>Système de reconnaissance faciale et d'analyse d'émotions en temps réel. Détection des visages, classification des expressions émotionnelles et suivi en direct avec une interface graphique intuitive.</p>
+                        <div class="tech-stack">
+                            <span class="tech-tag">Python</span>
+                            <span class="tech-tag">OpenCV</span>
+                            <span class="tech-tag">TensorFlow</span>
+                            <span class="tech-tag">Machine Learning</span>
+                        </div>
+                        <div class="project-links">
+                            <a href="#" class="project-link fullscreen-btn" onclick="openModal('facialsentinel'); event.stopPropagation();"><i class="fas fa-expand"></i> Voir en détail</a>
+                            <a href="#" class="project-link code-link" onclick="event.stopPropagation();"><i class="fab fa-github"></i> Code source</a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -617,6 +631,13 @@
                 description: "Minishell est une implémentation complète d'un shell Unix en langage C, offrant toutes les fonctionnalités essentielles d'un terminal moderne. Ce projet démontre une compréhension approfondie des systèmes d'exploitation, de la gestion des processus et des entrées/sorties.<br><br>Fonctionnalités implémentées :<ul><li>Parsing avancé des commandes avec gestion des quotes</li><li>Redirections d'entrée/sortie (>, <, >>, <<)</li><li>Pipes multiples avec gestion des processus</li><li>Commandes intégrées (cd, echo, exit, env, etc.)</li><li>Gestion des signaux (Ctrl-C, Ctrl-D, Ctrl-\\)</li><li>Variables d'environnement et historique des commandes</li><li>Autocomplétion avec la touche Tab</li></ul>",
                 techStack: ["C", "Systèmes Unix", "Gestion de processus", "Parsing", "Signaux"],
                 videoSrc: "assets/Minishell.mp4"
+            },
+            facialsentinel: {
+                title: "FacialSentinel",
+                subtitle: "Détection faciale et analyse d'émotions",
+                description: "FacialSentinel est une application de reconnaissance faciale et d'analyse émotionnelle en temps réel. Utilisant des modèles de machine learning avancés, le système détecte les visages dans un flux vidéo et identifie les émotions principales (joie, tristesse, colère, surprise, etc.) avec une précision élevée.<br><br>Fonctionnalités clés :<ul><li>Détection en temps réel via webcam ou vidéo</li><li>Classification des 7 émotions universelles</li><li>Suivi des visages multiples simultanément</li><li>Interface graphique intuitive avec visualisation</li><li>Export des données d'analyse</li><li>Optimisation pour performances temps réel</li></ul>",
+                techStack: ["Python", "OpenCV", "TensorFlow", "Keras", "Machine Learning"],
+                videoSrc: "assets/FacialSentinel.mp4"
             }
         };
         
