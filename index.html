@@ -204,6 +204,39 @@
     </div>
 
     <script>
+        function initVisitorCounter() {
+            const counterKey = 'visitorCounter';
+            const visitorIdKey = 'visitorId';
+            
+            let counter = localStorage.getItem(counterKey);
+            let visitorId = localStorage.getItem(visitorIdKey);
+            
+            if (!counter) counter = 0;
+            if (!visitorId) {
+                visitorId = 'v_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem(visitorIdKey, visitorId);
+                counter = parseInt(counter) + 1;
+                localStorage.setItem(counterKey, counter);
+            }
+            
+            const counterElement = document.createElement('div');
+            counterElement.id = 'visitorCounter';
+            counterElement.style.position = 'fixed';
+            counterElement.style.top = '6px';
+            counterElement.style.left = '20px';
+            counterElement.style.padding = '8px 15px';
+            counterElement.style.backgroundColor = 'rgba(138, 107, 255, 0.2)';
+            counterElement.style.backdropFilter = 'blur(5px)';
+            counterElement.style.color = '#ffffff';
+            counterElement.style.borderRadius = '20px';
+            counterElement.style.fontSize = '14px';
+            counterElement.style.zIndex = '1000';
+            counterElement.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+            counterElement.innerHTML = `<i class="fas fa-users"></i> Visiteurs uniques: ${counter}`;
+            
+            document.body.appendChild(counterElement);
+        }
+
         const staticParticles = [
             { size: 15, color: '#8a6bff', left: 5, tx: -0.8, duration: 8, delay: 0.1 },
             { size: 12, color: '#6a4bce', left: 15, tx: 0.7, duration: 10, delay: 0.3 },
@@ -253,6 +286,7 @@
             initScrollAnimations();
             applySavedTheme();
             themeToggle.addEventListener('click', toggleTheme);
+            initVisitorCounter();
 
             document.getElementById('cursor').style.opacity = '1';
             document.querySelector('main').style.opacity = '1';
